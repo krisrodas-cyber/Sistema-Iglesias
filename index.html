@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Acceso seguro al Sistema de Gestión de Iglesias de la Diócesis de Quetzaltenango.">
+    <title>Iniciar sesión | Sistema de Gestión de Iglesias</title>
+
+    <!-- Dependencias visuales del sistema. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/login.css">
+  </head>
+  <body>
+    <main class="login-page">
+      <!-- Panel institucional: visible en escritorio y oculto en pantallas reducidas. -->
+      <section class="identity-panel" aria-labelledby="identity-title">
+        <div class="identity-panel__topbar">
+          <a class="system-brand" href="index.html" aria-label="Sistema de Gestión de Iglesias">
+            <span class="system-brand__symbol" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
+            <span class="system-brand__copy"><strong>SGI</strong><small>Diócesis de Quetzaltenango</small></span>
+          </a>
+          <span class="identity-panel__status"><i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Acceso protegido</span>
+        </div>
+
+        <div class="identity-panel__content">
+          <p class="section-label">Plataforma de administración</p>
+          <h1 id="identity-title">Gestión clara.<br>Comunidad conectada.</h1>
+          <p class="identity-panel__description">Una plataforma segura para acompañar la gestión pastoral y administrativa de cada iglesia.</p>
+
+          <!-- Ilustración CSS original que representa nodos conectados de información. -->
+          <div class="system-map" aria-hidden="true">
+            <span class="system-map__line system-map__line--one"></span>
+            <span class="system-map__line system-map__line--two"></span>
+            <span class="system-map__line system-map__line--three"></span>
+            <div class="system-map__node system-map__node--central"><i class="bi bi-buildings-fill"></i><span>Gestión central</span></div>
+            <div class="system-map__node system-map__node--left"><i class="bi bi-people-fill"></i></div>
+            <div class="system-map__node system-map__node--right"><i class="bi bi-clipboard-data-fill"></i></div>
+            <div class="system-map__node system-map__node--bottom"><i class="bi bi-bank2"></i></div>
+          </div>
+        </div>
+
+        <p class="identity-panel__footer"><i class="bi bi-check2-circle" aria-hidden="true"></i> Información organizada y protegida</p>
+      </section>
+
+      <!-- Área de autenticación. La lógica se encuentra exclusivamente en js/login.js. -->
+      <section class="login-section" aria-labelledby="login-title">
+        <div class="login-card">
+          <a class="mobile-brand" href="index.html" aria-label="Sistema de Gestión de Iglesias">
+            <span class="system-brand__symbol" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
+            <span class="system-brand__copy"><strong>SGI</strong><small>Diócesis de Quetzaltenango</small></span>
+          </a>
+
+          <header class="login-card__header">
+            <p class="section-label">Área segura</p>
+            <h2 id="login-title">Bienvenido de nuevo</h2>
+            <p>Ingrese sus credenciales para acceder al sistema.</p>
+          </header>
+
+          <!-- Los errores se muestran mediante Bootstrap Alert desde js/login.js. -->
+          <form id="formulario-login" class="login-form" novalidate>
+            <div id="mensaje-error" class="alert alert-danger d-none" role="alert" aria-live="assertive"></div>
+
+            <div class="mb-4">
+              <label for="correo" class="form-label">Correo electrónico</label>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text" aria-hidden="true"><i class="bi bi-envelope"></i></span>
+                <input id="correo" name="correo" class="form-control" type="email" autocomplete="email" placeholder="nombre@diocesis.org" required>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="contrasena" class="form-label">Contraseña</label>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text" aria-hidden="true"><i class="bi bi-key"></i></span>
+                <input id="contrasena" name="contrasena" class="form-control" type="password" autocomplete="current-password" placeholder="Ingrese su contraseña" required>
+                <button id="alternar-contrasena" class="btn password-toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false">
+                  <i class="bi bi-eye password-toggle__show" aria-hidden="true"></i>
+                  <i class="bi bi-eye-slash password-toggle__hide d-none" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- El indicador aparece mientras Supabase procesa la autenticación. -->
+            <button id="boton-ingresar" class="btn login-submit w-100" type="submit">
+              <span class="button-text">Iniciar sesión</span>
+              <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
+              <span class="loading-text visually-hidden d-none" aria-live="polite">Procesando inicio de sesión</span>
+              <i class="bi bi-arrow-right-short button-arrow" aria-hidden="true"></i>
+            </button>
+          </form>
+
+          <div class="security-note"><i class="bi bi-lock-fill" aria-hidden="true"></i><span>Sus datos están protegidos mediante acceso seguro.</span></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Módulo ES6 que carga la autenticación y las interacciones del Login. -->
+    <script type="module" src="js/login.js"></script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+/** Tokens visuales globales definidos en docs/UI_GUIDE.md. */
+:root {
+  --color-background: #07141d;
+  --color-background-secondary: #0d1b26;
+  --color-card: #102331;
+  --color-primary: #00c8d7;
+  --color-primary-hover: #2be4ff;
+  --color-success: #2ecc71;
+  --color-warning: #f4b400;
+  --color-error: #ff5c5c;
+  --color-text: #ffffff;
+  --color-text-muted: #b9c6d2;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-focus: rgba(0, 200, 215, 0.72);
+  --color-primary-soft: rgba(0, 200, 215, 0.12);
+  --color-primary-faint: rgba(0, 200, 215, 0.06);
+  --color-success-soft: rgba(46, 204, 113, 0.12);
+  --color-warning-soft: rgba(244, 180, 0, 0.12);
+  --color-error-soft: rgba(255, 92, 92, 0.12);
+  --color-shadow: rgba(0, 0, 0, 0.24);
+  --radius-button: 0.875rem;
+  --radius-card: 1.5rem;
+  --transition-base: 180ms ease;
+}
