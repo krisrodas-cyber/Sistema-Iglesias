@@ -67,7 +67,7 @@ const showToast = (message, success = true) => { elements.toastMessage.textConte
 
 /** Traduce errores frecuentes de Supabase a mensajes seguros para el usuario. */
 const databaseMessage = (error) => {
-  if (error?.code === '23505') return 'El código del sacerdote ya está registrado.';
+  if (error?.code === '23505') return 'No fue posible generar un código único para el sacerdote. Intente nuevamente.';
   if (error?.code === '42501') return 'No cuenta con permisos para realizar esta operación.';
   if (error?.name === 'AbortError') return 'La consulta tardó demasiado. Verifique su conexión e intente nuevamente.';
   if (error instanceof TypeError) return 'No fue posible conectar con el servidor. Intente nuevamente.';
@@ -78,7 +78,7 @@ const databaseMessage = (error) => {
 const buildPayload = () => {
   const data = new FormData(elements.form);
   const religious = data.get('tipo_clero') === 'Religioso';
-  return { codigo: data.get('codigo').trim().toUpperCase(), nombres: data.get('nombres').trim(), apellidos: data.get('apellidos').trim(), nombre_religioso: optional(data.get('nombre_religioso')), fecha_nacimiento: data.get('fecha_nacimiento') || null, fecha_ordenacion: data.get('fecha_ordenacion') || null, tipo_clero: data.get('tipo_clero'), congregacion: religious ? optional(data.get('congregacion')) : null, telefono: optional(data.get('telefono')), correo: optional(data.get('correo')), direccion: optional(data.get('direccion')), nacionalidad: optional(data.get('nacionalidad')), estado_ministerial: data.get('estado_ministerial'), observaciones: optional(data.get('observaciones')), activo: data.get('activo') === 'true' };
+  return { nombres: data.get('nombres').trim(), apellidos: data.get('apellidos').trim(), nombre_religioso: optional(data.get('nombre_religioso')), fecha_nacimiento: data.get('fecha_nacimiento') || null, fecha_ordenacion: data.get('fecha_ordenacion') || null, tipo_clero: data.get('tipo_clero'), congregacion: religious ? optional(data.get('congregacion')) : null, telefono: optional(data.get('telefono')), correo: optional(data.get('correo')), direccion: optional(data.get('direccion')), nacionalidad: optional(data.get('nacionalidad')), estado_ministerial: data.get('estado_ministerial'), observaciones: optional(data.get('observaciones')), activo: data.get('activo') === 'true' };
 };
 
 /** Valida los campos nativos y la relación entre las fechas del formulario. */
@@ -131,12 +131,15 @@ const fetchPriests = async () => {
 };
 
 /** Restablece el formulario para registrar un sacerdote nuevo. */
-const resetForm = () => { editingPriestId = null; elements.form.reset(); elements.form.classList.remove('was-validated'); elements.form.elements.tipo_clero.value = 'Diocesano'; elements.form.elements.nacionalidad.value = DEFAULT_NATIONALITY; elements.form.elements.estado_ministerial.value = 'Activo'; elements.form.elements.activo.value = 'true'; elements.title.textContent = 'Nuevo sacerdote'; elements.save.querySelector('span').textContent = 'Guardar'; syncCongregation(); };
+/** Alterna el aviso de creación y el código generado no editable. */
+const setCodePresentation = (codigo = null) => { const hasCode = Boolean(codigo); elements.code.value = codigo ?? ''; elements.code.classList.toggle('d-none', !hasCode); document.querySelector('#priest-code-auto-note').classList.toggle('d-none', hasCode); };
+
+const resetForm = () => { editingPriestId = null; elements.form.reset(); elements.form.classList.remove('was-validated'); elements.form.elements.tipo_clero.value = 'Diocesano'; elements.form.elements.nacionalidad.value = DEFAULT_NATIONALITY; elements.form.elements.estado_ministerial.value = 'Activo'; elements.form.elements.activo.value = 'true'; elements.title.textContent = 'Nuevo sacerdote'; elements.save.querySelector('span').textContent = 'Guardar'; syncCongregation(); setCodePresentation(); };
 
 /** Abre el formulario en modo creación después de aplicar el permiso de interfaz. */
 const openNew = () => { if (!hasPermission(userContext, 'priests.create')) return showToast('No cuenta con permisos para registrar sacerdotes.', false); resetForm(); formModal.show(); };
 /** Precarga el formulario en modo edición para administradores. */
-const openEdit = (priest) => { if (!hasPermission(userContext, 'priests.update')) return showToast('Acceso no autorizado.', false); editingPriestId = priest.id; elements.form.reset(); Object.entries(priest).forEach(([key, value]) => { const field = elements.form.elements.namedItem(key); if (field) field.value = key === 'activo' ? String(value) : value ?? ''; }); elements.form.classList.remove('was-validated'); elements.title.textContent = 'Editar sacerdote'; elements.save.querySelector('span').textContent = 'Guardar cambios'; syncCongregation(); formModal.show(); };
+const openEdit = (priest) => { if (!hasPermission(userContext, 'priests.update')) return showToast('Acceso no autorizado.', false); editingPriestId = priest.id; elements.form.reset(); Object.entries(priest).forEach(([key, value]) => { const field = elements.form.elements.namedItem(key); if (field) field.value = key === 'activo' ? String(value) : value ?? ''; }); elements.form.classList.remove('was-validated'); elements.title.textContent = 'Editar sacerdote'; elements.save.querySelector('span').textContent = 'Guardar cambios'; setCodePresentation(priest.codigo); syncCongregation(); formModal.show(); };
 
 /** Muestra el detalle de un sacerdote sin exponer UUID ni insertar HTML no confiable. */
 const openDetails = (priest) => { elements.detail.replaceChildren(); const grid = document.createElement('dl'); grid.className = 'priest-details__grid'; DETAIL_FIELDS.forEach(([label, key]) => { const term = document.createElement('dt'); const description = document.createElement('dd'); term.textContent = label; description.textContent = key === 'fullName' ? fullName(priest) : key === 'activo' ? (priest.activo ? 'Activo' : 'Inactivo') : key.includes('_at') ? formatDate(priest[key], true) : key.startsWith('fecha_') ? formatDate(priest[key]) : priest[key] || '—'; grid.append(term, description); }); elements.detail.append(grid); detailModal.show(); };
@@ -147,7 +150,7 @@ const openStatus = (priest) => { if (!hasPermission(userContext, 'priests.update
 /** Inserta o actualiza el formulario utilizando siempre el id como filtro al editar. */
 const savePriest = async (event) => {
   event.preventDefault(); if (!hasPermission(userContext, editingPriestId ? 'priests.update' : 'priests.create')) return showToast('Acceso no autorizado.', false); const validation = validateForm(); if (validation) { elements.form.classList.add('was-validated'); showError(validation); return; } hideError(); const payload = buildPayload(); const editing = Boolean(editingPriestId); elements.save.disabled = true; elements.save.querySelector('.spinner-border').classList.remove('d-none');
-  try { const query = editing ? supabase.from('sacerdotes').update(payload).eq('id', editingPriestId).select().single() : supabase.from('sacerdotes').insert(payload).select().single(); const { error } = await query; if (error) throw error; formModal.hide(); resetForm(); await fetchPriests(); showToast(editing ? 'Sacerdote actualizado correctamente.' : 'Sacerdote registrado correctamente.'); }
+  try { const query = editing ? supabase.from('sacerdotes').update(payload).eq('id', editingPriestId).select().single() : supabase.from('sacerdotes').insert(payload).select().single(); const { data, error } = await query; if (error) throw error; formModal.hide(); resetForm(); await fetchPriests(); showToast(editing ? 'Sacerdote actualizado correctamente.' : `Sacerdote ${data.codigo} registrado correctamente.`); }
   catch (error) { console.error('No fue posible guardar el sacerdote:', error); showError(databaseMessage(error)); showToast(databaseMessage(error), false); }
   finally { elements.save.disabled = false; elements.save.querySelector('.spinner-border').classList.add('d-none'); }
 };
@@ -165,7 +168,7 @@ export async function initSacerdotes(context) {
   if (!context || !hasPermission(context, 'priests.view')) return;
   destroySacerdotes(); userContext = context; mountOverlays(); elements = cacheElements(); const bootstrap = getBootstrap();
   formModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('priest-modal')); detailModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('priest-detail-modal')); statusModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('priest-status-modal')); toast = bootstrap.Toast.getOrCreateInstance(document.getElementById('priest-toast')); eventController = new AbortController(); const options = { signal: eventController.signal };
-  document.querySelector('#new-priest-button').hidden = !hasPermission(userContext, 'priests.create'); document.querySelector('#new-priest-button').addEventListener('click', openNew, options); elements.form.addEventListener('submit', savePriest, options); elements.code.addEventListener('input', () => { elements.code.value = elements.code.value.toUpperCase(); }, options); elements.clergyType.addEventListener('change', syncCongregation, options); [elements.search, elements.clergyFilter, elements.ministryFilter, elements.recordFilter].forEach((control) => control.addEventListener(control === elements.search ? 'input' : 'change', () => { currentPage = 1; renderTable(); }, options)); elements.confirmStatus.addEventListener('click', changeStatus, options); await fetchPriests();
+  document.querySelector('#new-priest-button').hidden = !hasPermission(userContext, 'priests.create'); document.querySelector('#new-priest-button').addEventListener('click', openNew, options); elements.form.addEventListener('submit', savePriest, options); elements.clergyType.addEventListener('change', syncCongregation, options); [elements.search, elements.clergyFilter, elements.ministryFilter, elements.recordFilter].forEach((control) => control.addEventListener(control === elements.search ? 'input' : 'change', () => { currentPage = 1; renderTable(); }, options)); elements.confirmStatus.addEventListener('click', changeStatus, options); await fetchPriests();
 }
 
 /** Elimina listeners, instancias Bootstrap y overlays al abandonar el módulo. */

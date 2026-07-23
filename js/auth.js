@@ -52,8 +52,8 @@ export const getAuthenticatedUser = async () => {
 
 /** Permisos de interfaz asignados a cada rol definido en public.roles. */
 const rolePermissions = {
-  1: ['*'],
-  2: ['dashboard.view', 'parishes.view', 'parishes.create', 'priests.view', 'priests.create'],
+  1: ['*', 'assignments.view', 'assignments.create', 'assignments.update', 'assignments.finish'],
+  2: ['dashboard.view', 'parishes.view', 'parishes.create', 'priests.view', 'priests.create', 'communities.view', 'communities.create', 'chapels.view', 'chapels.create', 'inventory.view', 'inventory.create'],
 };
 
 /**

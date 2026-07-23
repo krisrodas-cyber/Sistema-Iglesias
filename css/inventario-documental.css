@@ -1,0 +1,11 @@
+@import url('./comunidades.css');
+.inventory-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin:1.5rem 0}.inventory-summary__card{padding:1rem;border:1px solid var(--border-color);border-radius:16px;background:var(--surface-color,#102331)}.inventory-summary__card strong{display:block;font-size:1.5rem;color:var(--primary-color,#00c8d7)}.inventory-section-title{font-size:1rem;color:var(--primary-color,#00c8d7);margin:1rem 0 0}
+
+/* El diálogo se limita al viewport: el único desplazamiento vertical pertenece al cuerpo del formulario. */
+#inventory-modal .modal-dialog{width:min(1180px,calc(100vw - 2rem));max-width:1180px;height:calc(100vh - 2rem);max-height:calc(100vh - 2rem);margin:1rem auto}
+#inventory-modal .modal-content{display:flex;flex-direction:column;max-height:100%;overflow:hidden}
+#inventory-modal form{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;overflow:hidden}
+#inventory-modal .modal-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding-bottom:2rem}
+#inventory-modal .modal-header,#inventory-modal .modal-footer{flex:0 0 auto;position:relative;z-index:2}
+#inventory-modal .modal-footer{background:var(--surface-color,#102331);border-top:1px solid var(--border-color,rgba(255,255,255,.08))}
+@media (max-width:767.98px){#inventory-modal .modal-dialog{width:100%;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;margin:0}#inventory-modal .modal-content{min-height:100vh;min-height:100dvh;border-radius:0}#inventory-modal .modal-body{padding-bottom:max(2rem,env(safe-area-inset-bottom))}#inventory-modal .modal-footer{gap:.75rem}#inventory-modal .modal-footer .btn{flex:1 1 auto;min-height:44px}}

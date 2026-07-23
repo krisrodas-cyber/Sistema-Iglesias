@@ -31,6 +31,22 @@ const viewRegistry = {
       return module.destroySacerdotes;
     },
   },
+  asignaciones: {
+    url: new URL('../app/asignaciones.html', import.meta.url),
+    permission: 'assignments.view',
+    stylesheet: new URL('../css/asignaciones.css', import.meta.url),
+    initialize: async (context) => {
+      const module = await import('./asignaciones.js');
+      await module.initAsignaciones(context);
+      return module.destroyAsignaciones;
+    },
+  },
+  comunidades: {
+    url: new URL('../app/comunidades.html', import.meta.url), permission: 'communities.view', stylesheet: new URL('../css/comunidades.css', import.meta.url),
+    initialize: async (context) => { const module = await import('./comunidades.js'); await module.initComunidades(context); return module.destroyComunidades; },
+  },
+  capillas: { url: new URL('../app/capillas.html', import.meta.url), permission: 'chapels.view', stylesheet: new URL('../css/capillas.css', import.meta.url), initialize: async (context) => { const module = await import('./capillas.js'); await module.initCapillas(context); return module.destroyCapillas; } },
+  inventarioDocumental: { url: new URL('../app/inventario-documental.html', import.meta.url), permission: 'inventory.view', stylesheet: new URL('../css/inventario-documental.css', import.meta.url), initialize: async (context) => { const module = await import('./inventario-documental.js'); await module.initInventarioDocumental(context); return module.destroyInventarioDocumental; } },
   usuarios: { url: new URL('../pages/usuarios.html', import.meta.url), permission: 'users.view' },
   reportes: { url: new URL('../pages/reportes.html', import.meta.url), permission: 'reports.view' },
   configuracion: { url: new URL('../pages/configuracion.html', import.meta.url), permission: 'settings.view' },

@@ -82,7 +82,7 @@ const showToast = (message, isSuccess = true) => {
 
 /** Traduce errores conocidos de Supabase a mensajes útiles para la interfaz. */
 const getDatabaseErrorMessage = (error) => {
-  if (error?.code === '23505') return 'El código de parroquia ya está registrado.';
+  if (error?.code === '23505') return 'No fue posible generar un código único para la parroquia. Intente nuevamente.';
   if (error?.code === '42501') return 'No cuenta con permisos para realizar esta operación.';
   if (error?.name === 'AbortError') return 'La consulta tardó demasiado. Verifique su conexión e intente nuevamente.';
   if (error instanceof TypeError) return 'No fue posible conectar con el servidor. Intente nuevamente.';
@@ -93,7 +93,7 @@ const getDatabaseErrorMessage = (error) => {
 const buildPayload = () => {
   const formData = new FormData(elements.form);
   return {
-    codigo: formData.get('codigo').trim().toUpperCase(),
+
     nombre: formData.get('nombre').trim(),
     patrono: getOptionalValue(formData.get('patrono')),
     direccion: getOptionalValue(formData.get('direccion')),
@@ -108,6 +108,14 @@ const buildPayload = () => {
 };
 
 /** Devuelve un mensaje claro para la primera validación del formulario que falle. */
+/** Alterna entre el aviso de creación y el código generado de solo lectura. */
+const setCodePresentation = (codigo = null) => {
+  const hasCode = Boolean(codigo);
+  elements.codeInput.value = codigo ?? '';
+  elements.codeInput.classList.toggle('d-none', !hasCode);
+  document.querySelector('#parish-code-auto-note').classList.toggle('d-none', hasCode);
+};
+
 const getFormValidationMessage = () => {
   const email = elements.form.elements.correo;
   if (email.value && !email.validity.valid) return 'Ingrese un correo electrónico válido.';
@@ -249,6 +257,7 @@ const resetForm = () => {
   elements.form.elements.estado.value = 'true';
   elements.formTitle.textContent = 'Nueva parroquia';
   elements.saveButton.querySelector('span').textContent = 'Guardar';
+  setCodePresentation();
 };
 
 /** Abre el formulario en modo creación si el rol tiene permiso de registrar. */
@@ -276,6 +285,7 @@ const openEditForm = (parish) => {
   elements.form.classList.remove('was-validated');
   elements.formTitle.textContent = 'Editar parroquia';
   elements.saveButton.querySelector('span').textContent = 'Guardar cambios';
+  setCodePresentation(parish.codigo);
   formModal.show();
 };
 
@@ -330,12 +340,12 @@ const saveParish = async (event) => {
     const query = isEditing
       ? supabase.from('parroquias').update(payload).eq('id', editingParishId).select().single()
       : supabase.from('parroquias').insert(payload).select().single();
-    const { error } = await query;
+    const { data, error } = await query;
     if (error) throw error;
     formModal.hide();
     resetForm();
     await fetchParishes();
-    showToast(isEditing ? 'Parroquia actualizada correctamente.' : 'Parroquia registrada correctamente.');
+    showToast(isEditing ? 'Parroquia actualizada correctamente.' : `Parroquia ${data.codigo} registrada correctamente.`);
   } catch (error) {
     console.error('No fue posible guardar la parroquia:', error);
     showError(getDatabaseErrorMessage(error));
@@ -389,7 +399,7 @@ export async function initParroquias(context) {
   document.querySelector('#new-parish-button').hidden = !hasPermission(userContext, 'parishes.create');
   document.querySelector('#new-parish-button').addEventListener('click', openNewForm, eventOptions);
   elements.form.addEventListener('submit', saveParish, eventOptions);
-  elements.codeInput.addEventListener('input', () => { elements.codeInput.value = elements.codeInput.value.toUpperCase(); }, eventOptions);
+
   elements.searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); }, eventOptions);
   [elements.municipalityFilter, elements.statusFilter].forEach((control) => control.addEventListener('change', () => { currentPage = 1; renderTable(); }, eventOptions));
   elements.confirmStatusButton.addEventListener('click', changeParishStatus, eventOptions);
