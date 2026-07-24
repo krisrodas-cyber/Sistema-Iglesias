@@ -10,7 +10,7 @@ const dashboardUrl = new URL('../pages/dashboard.html', import.meta.url);
 
 /** Registro central de vistas dinámicas privadas. */
 const viewRegistry = {
-  dashboard: { url: dashboardUrl, permission: 'dashboard.view' },
+  dashboard: { url: dashboardUrl, permission: 'dashboard.view', initialize: async () => { const module = await import('./dashboard.js'); await module.initDashboard(); return module.destroyDashboard; } },
   parroquias: {
     url: new URL('../app/parroquias.html', import.meta.url),
     permission: 'parishes.view',
@@ -46,8 +46,9 @@ const viewRegistry = {
     initialize: async (context) => { const module = await import('./comunidades.js'); await module.initComunidades(context); return module.destroyComunidades; },
   },
   capillas: { url: new URL('../app/capillas.html', import.meta.url), permission: 'chapels.view', stylesheet: new URL('../css/capillas.css', import.meta.url), initialize: async (context) => { const module = await import('./capillas.js'); await module.initCapillas(context); return module.destroyCapillas; } },
+  consultas: { url: new URL('../app/consultas.html', import.meta.url), permission: 'consultas.view', stylesheet: new URL('../css/consultas.css', import.meta.url), initialize: async (context) => { const module = await import('./consultas.js'); await module.initConsultas(context); return module.destroyConsultas; } },
   inventarioDocumental: { url: new URL('../app/inventario-documental.html', import.meta.url), permission: 'inventory.view', stylesheet: new URL('../css/inventario-documental.css', import.meta.url), initialize: async (context) => { const module = await import('./inventario-documental.js'); await module.initInventarioDocumental(context); return module.destroyInventarioDocumental; } },
-  usuarios: { url: new URL('../pages/usuarios.html', import.meta.url), permission: 'users.view' },
+  usuarios: { url: new URL('../app/usuarios.html', import.meta.url), permission: 'users.view', stylesheet: new URL('../css/usuarios.css', import.meta.url), initialize: async (context) => { const module = await import('./usuarios.js'); await module.initUsuarios(context); return module.destroyUsuarios; } },
   reportes: { url: new URL('../pages/reportes.html', import.meta.url), permission: 'reports.view' },
   configuracion: { url: new URL('../pages/configuracion.html', import.meta.url), permission: 'settings.view' },
 };
@@ -129,7 +130,7 @@ const initializeApp = async () => {
     initializeSidebar(navigateTo, (permission) => hasPermission(currentUserContext, permission));
     setFooterMetadata(APP_NAME, APP_VERSION);
     activeView = '';
-    await navigateTo(getHistoryView(), false);
+    await navigateTo(currentUserContext.profile.rol_id === '3' ? 'consultas' : getHistoryView(), false);
     initializeGlobalEvents();
   } catch (error) {
     console.error('No fue posible inicializar la aplicación:', error);

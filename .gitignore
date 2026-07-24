@@ -1,0 +1,12 @@
+# Dependencias de Node
+node_modules/
+
+# Variables y secretos locales
+.env
+.env.*
+!.env.example
+
+# Archivos del sistema y editor
+.DS_Store
+Thumbs.db
+.vscode/

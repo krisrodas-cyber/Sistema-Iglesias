@@ -4,6 +4,7 @@
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from './config.js';
+import { hasInterfacePermission } from './permissions.js';
 
 /** Cliente único de Supabase reutilizado por los módulos de la aplicación. */
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -50,11 +51,6 @@ export const getAuthenticatedUser = async () => {
   return data.user;
 };
 
-/** Permisos de interfaz asignados a cada rol definido en public.roles. */
-const rolePermissions = {
-  1: ['*', 'assignments.view', 'assignments.create', 'assignments.update', 'assignments.finish'],
-  2: ['dashboard.view', 'parishes.view', 'parishes.create', 'priests.view', 'priests.create', 'communities.view', 'communities.create', 'chapels.view', 'chapels.create', 'inventory.view', 'inventory.create'],
-};
 
 /**
  * Obtiene el usuario de Auth, su perfil público y el rol relacionado.
@@ -116,6 +112,5 @@ export const getUserContext = async () => {
  * @returns {boolean} Indica si el rol puede acceder a la acción solicitada.
  */
 export const hasPermission = (userContext, permission) => {
-  const permissions = rolePermissions[userContext?.profile?.rol_id] ?? [];
-  return permissions.includes('*') || permissions.includes(permission);
+  return hasInterfacePermission(userContext, permission);
 };
