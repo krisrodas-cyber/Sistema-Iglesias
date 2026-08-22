@@ -13,7 +13,7 @@ const renderUserProfile = (userContext) => {
   document.querySelector('#avatar-initials').textContent = getInitials(fullName);
   document.querySelector('#user-name').textContent = fullName;
   document.querySelector('#user-email').textContent = userContext.user.email ?? 'Correo no disponible';
-  document.querySelector('#user-role').textContent = getDisplayRole(userContext);
+  document.querySelector('#topbar-user-role').textContent = getDisplayRole(userContext);
   const parish = document.querySelector('#assigned-parish');
   if (userContext.role?.nombre === 'Secretario') {
     parish.textContent = userContext.assignedParish

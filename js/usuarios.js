@@ -48,8 +48,22 @@ const cargarParroquias = async () => {
   parishes = data ?? []; e.parish.replaceChildren(new Option('Seleccione una parroquia', ''));
   parishes.forEach((parish) => e.parish.add(new Option(`${parish.codigo} · ${parish.nombre}`, parish.id)));
 };
-/** Presenta y valida la parroquia solo en creación o cambio de rol de Secretario. */
-const syncParishField = () => { const show = e.role.value === SECRETARY && (mode === 'create' || mode === 'role'); e.parishGroup.hidden = !show; e.parish.required = show; if (!show) e.parish.value = ''; };
+/** Evita asignar Secretario por defecto y obliga a seleccionar explícitamente un rol. */
+const ensureRolePlaceholder = () => {
+  if (e.role.querySelector('option[value=""]')) return;
+  e.role.prepend(new Option('Seleccione un rol', '', true, true));
+};
+/** Sincroniza visualmente y en validación el campo Parroquia con el rol seleccionado. */
+const syncParishFieldWithRole = () => {
+  const roleId = String(e.role.value);
+  const isSecretary = roleId === SECRETARY && (mode === 'create' || mode === 'role');
+  e.parishGroup.classList.toggle('d-none', !isSecretary);
+  e.parish.required = isSecretary;
+  if (!isSecretary) {
+    e.parish.value = '';
+    e.parish.classList.remove('is-invalid');
+  }
+};
 
 export async function cargarUsuarios() {
   e.loader.classList.remove('d-none'); hideAlert();
@@ -58,22 +72,22 @@ export async function cargarUsuarios() {
   finally { e.loader.classList.add('d-none'); }
 }
 
-const reset = () => { selected = null; mode = 'create'; e.form.reset(); e.form.classList.remove('was-validated'); hideAlert(); e.title.textContent = 'Nuevo usuario'; e.emailGroup.hidden = false; e.roleGroup.hidden = false; e.passwordGroup.hidden = false; e.activeGroup.hidden = false; e.form.elements.email.required = true; e.password.required = true; e.role.value = SECRETARY; syncParishField(); };
+const reset = () => { selected = null; mode = 'create'; e.form.reset(); e.form.classList.remove('was-validated'); hideAlert(); e.title.textContent = 'Nuevo usuario'; e.emailGroup.hidden = false; e.roleGroup.hidden = false; e.passwordGroup.hidden = false; e.activeGroup.hidden = false; e.form.elements.email.required = true; e.password.required = true; e.role.value = ''; e.parish.value = ''; syncParishFieldWithRole(); };
 const openNew = () => { reset(); formModal.show(); };
-const openEdit = (user, nextMode) => { selected = user; mode = nextMode; e.form.reset(); e.form.classList.remove('was-validated'); hideAlert(); e.form.elements.nombre.value = user.nombre; e.form.elements.apellido.value = user.apellido; e.role.value = user.rol_id ?? ''; e.parish.value = user.parroquia_id ?? ''; e.emailGroup.hidden = true; e.activeGroup.hidden = true; e.roleGroup.hidden = nextMode !== 'role'; e.passwordGroup.hidden = nextMode !== 'password'; e.form.elements.email.required = false; e.password.required = nextMode === 'password'; e.title.textContent = nextMode === 'profile' ? 'Editar perfil' : nextMode === 'role' ? 'Cambiar rol y parroquia' : 'Restablecer contraseña temporal'; syncParishField(); formModal.show(); };
+const openEdit = (user, nextMode) => { selected = user; mode = nextMode; e.form.reset(); e.form.classList.remove('was-validated'); hideAlert(); e.form.elements.nombre.value = user.nombre; e.form.elements.apellido.value = user.apellido; e.role.value = user.rol_id ?? ''; e.parish.value = user.parroquia_id ?? ''; e.emailGroup.hidden = true; e.activeGroup.hidden = true; e.roleGroup.hidden = nextMode !== 'role'; e.passwordGroup.hidden = nextMode !== 'password'; e.form.elements.email.required = false; e.password.required = nextMode === 'password'; e.title.textContent = nextMode === 'profile' ? 'Editar perfil' : nextMode === 'role' ? 'Cambiar rol y parroquia' : 'Restablecer contraseña temporal'; syncParishFieldWithRole(); formModal.show(); };
 
 const details = (user) => { e.confirmTitle.textContent = 'Detalle de usuario'; e.confirmMessage.replaceChildren(); [['Nombre', user.nombre_completo], ['Correo', user.email], ['Rol', user.rol], ['Parroquia asignada', parishLabel(user)], ['Estado', user.activo ? 'Activo' : 'Inactivo']].forEach(([label, value]) => { const line = document.createElement('p'); line.textContent = `${label}: ${value}`; e.confirmMessage.append(line); }); e.confirmButton.hidden = true; confirmModal.show(); };
 const execute = async (body, successMessage) => { e.save.disabled = true; e.save.querySelector('.spinner-border').classList.remove('d-none'); try { await invoke(body); formModal.hide(); notify(successMessage); reset(); await cargarUsuarios(); } catch (error) { alert(error.message); } finally { e.save.disabled = false; e.save.querySelector('.spinner-border').classList.add('d-none'); } };
 
 const submit = async (event) => {
-  event.preventDefault(); syncParishField(); const passwordMode = mode === 'create' || mode === 'password'; const passwordValid = !passwordMode || /(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}/.test(e.password.value);
+  event.preventDefault(); syncParishFieldWithRole(); const passwordMode = mode === 'create' || mode === 'password'; const passwordValid = !passwordMode || /(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}/.test(e.password.value);
   if (!e.form.checkValidity() || !passwordValid) { e.form.classList.add('was-validated'); alert(passwordValid ? 'Complete los campos obligatorios.' : 'La contraseña debe tener mínimo 10 caracteres, mayúscula, minúscula, número y carácter especial.'); e.form.querySelector(':invalid')?.focus(); return; }
-  const data = new FormData(e.form); const parishId = e.role.value === SECRETARY ? data.get('parroquia_id') : null;
-  if ((mode === 'create' || mode === 'role') && e.role.value === SECRETARY && !parishId) { alert('Debe seleccionar una parroquia para el usuario Secretario.'); e.parish.focus(); return; }
+  const data = new FormData(e.form); const rolId = String(e.role.value); const parishId = rolId === SECRETARY ? e.parish.value : null;
+  if ((mode === 'create' || mode === 'role') && rolId === SECRETARY && !parishId) { alert('Debe seleccionar una parroquia para el usuario Secretario.'); e.parish.focus(); return; }
   let body; let success = 'Usuario actualizado correctamente.';
-  if (mode === 'create') { body = { action: 'create', nombre: data.get('nombre').trim(), apellido: data.get('apellido').trim(), email: data.get('email').trim(), rol_id: e.role.value, parroquia_id: parishId, password: data.get('password'), activo: data.get('activo') === 'on' }; success = 'Usuario creado correctamente.'; }
+  if (mode === 'create') { body = { action: 'create', nombre: data.get('nombre').trim(), apellido: data.get('apellido').trim(), email: data.get('email').trim(), password: data.get('password'), rol_id: rolId, parroquia_id: rolId === SECRETARY ? parishId : null, activo: data.get('activo') === 'on' }; console.info('Rol seleccionado:', rolId); console.info('Parroquia requerida:', rolId === SECRETARY); console.info('Parroquia enviada:', rolId === SECRETARY ? Boolean(e.parish.value) : false); console.info('Crear usuario:', { rol_id: body.rol_id, tieneParroquia: Boolean(body.parroquia_id) }); success = 'Usuario creado correctamente.'; }
   if (mode === 'profile') body = { action: 'updateProfile', userId: selected.id, nombre: data.get('nombre').trim(), apellido: data.get('apellido').trim() };
-  if (mode === 'role') body = { action: 'changeRole', userId: selected.id, rol_id: e.role.value, parroquia_id: parishId };
+  if (mode === 'role') body = { action: 'changeRole', userId: selected.id, rol_id: rolId, parroquia_id: rolId === SECRETARY ? parishId : null };
   if (mode === 'password') body = { action: 'resetPassword', userId: selected.id, password: data.get('password') };
   const run = () => execute(body, success);
   if (mode === 'role' && selected?.rol_id === SECRETARY && e.role.value === SECRETARY && String(selected.parroquia_id ?? '') !== String(parishId ?? '')) { const previous = parishLabel(selected); const next = parishes.find((parish) => parish.id === parishId); e.confirmTitle.textContent = 'Confirmar cambio de parroquia'; e.confirmMessage.textContent = `El usuario dejará de tener acceso a la información de ${previous} y pasará a trabajar únicamente con ${next ? `${next.codigo} · ${next.nombre}` : 'la parroquia seleccionada'}.`; e.confirmButton.hidden = false; pendingAction = async () => { await run(); confirmModal.hide(); }; confirmModal.show(); return; }
@@ -84,8 +98,8 @@ const confirmStatus = (user) => { e.confirmTitle.textContent = user.activo ? 'In
 
 export async function initUsuarios(context) {
   if (!hasPermission(context, 'users.view')) return;
-  e = cache(); formModal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#user-modal')); confirmModal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#user-confirm-modal')); toast = bootstrap.Toast.getOrCreateInstance(document.querySelector('#users-toast')); events = new AbortController(); const options = { signal: events.signal };
-  document.querySelector('#new-user').addEventListener('click', openNew, options); e.form.addEventListener('submit', submit, options); e.role.addEventListener('change', syncParishField, options); e.togglePassword.addEventListener('click', () => { e.password.type = e.password.type === 'password' ? 'text' : 'password'; }, options);
+  e = cache(); ensureRolePlaceholder(); formModal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#user-modal')); confirmModal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#user-confirm-modal')); toast = bootstrap.Toast.getOrCreateInstance(document.querySelector('#users-toast')); events = new AbortController(); const options = { signal: events.signal };
+  document.querySelector('#new-user').addEventListener('click', openNew, options); e.form.addEventListener('submit', submit, options); e.role.addEventListener('change', syncParishFieldWithRole, options); e.togglePassword.addEventListener('click', () => { e.password.type = e.password.type === 'password' ? 'text' : 'password'; }, options);
   document.querySelector('#user-confirm-modal').addEventListener('hidden.bs.modal', () => { e.confirmButton.hidden = false; pendingAction = null; }, options); e.confirmButton.addEventListener('click', async () => { e.confirmButton.disabled = true; try { await pendingAction?.(); } catch (error) { alert(error.message); } finally { e.confirmButton.disabled = false; } }, options);
   try { await cargarParroquias(); } catch (error) { console.error('No fue posible cargar parroquias:', error.message); alert('No fue posible cargar las parroquias activas.'); }
   await cargarUsuarios();
