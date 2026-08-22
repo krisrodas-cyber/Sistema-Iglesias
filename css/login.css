@@ -70,6 +70,7 @@ body {
   border-radius: 0.75rem;
   font-size: 1.25rem;
 }
+.system-brand__logo { width: 2.7rem; height: 2.7rem; flex: 0 0 auto; object-fit: contain; }
 
 .system-brand__copy { display: grid; line-height: 1.15; }
 .system-brand__copy strong { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.08em; }
@@ -142,6 +143,10 @@ body {
 .login-section { display: flex; min-height: 100vh; padding: 2rem 1.25rem; background: var(--color-background); }
 .login-card { width: min(100%, 28.5rem); margin: auto; padding: clamp(1.75rem, 5vw, 3rem); background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-card); box-shadow: 0 1.5rem 4rem var(--color-shadow); }
 .mobile-brand { margin-bottom: 3.25rem; }
+.login-institutional-brand { display: grid; justify-items: center; margin-bottom: 2rem; text-align: center; }
+.login-institutional-brand img { width: clamp(4.5rem, 12vw, 6rem); height: clamp(4.5rem, 12vw, 6rem); margin-bottom: 0.85rem; object-fit: contain; }
+.login-institutional-brand p { margin: 0; color: var(--color-text); font-size: 0.9rem; font-weight: 600; }
+.login-institutional-brand span { margin-top: 0.2rem; color: var(--color-text-muted); font-size: 0.72rem; }
 .login-card__header { margin-bottom: 2rem; }
 .login-card__header h2 { margin: 0 0 0.65rem; color: var(--color-text); font-size: clamp(1.6rem, 4vw, 2rem); font-weight: 600; letter-spacing: -0.035em; }
 .login-card__header > p:last-child { margin: 0; color: var(--color-text-muted); font-size: 0.86rem; line-height: 1.7; }

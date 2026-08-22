@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Acceso seguro al Sistema de Gestión de Iglesias de la Diócesis de Quetzaltenango.">
-    <title>Iniciar sesión | Sistema de Gestión de Iglesias</title>
+    <meta name="description" content="Acceso seguro al Sistema de Gestión Pastoral de la Arquidiócesis de Los Altos.">
+    <title>Iniciar sesión | Sistema de Gestión Pastoral</title>
 
     <!-- Dependencias visuales del sistema. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,9 +20,9 @@
       <!-- Panel institucional: visible en escritorio y oculto en pantallas reducidas. -->
       <section class="identity-panel" aria-labelledby="identity-title">
         <div class="identity-panel__topbar">
-          <a class="system-brand" href="index.html" aria-label="Sistema de Gestión de Iglesias">
-            <span class="system-brand__symbol" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
-            <span class="system-brand__copy"><strong>SGI</strong><small>Diócesis de Quetzaltenango</small></span>
+          <a class="system-brand" href="index.html" aria-label="Sistema de Gestión Pastoral">
+            <img class="system-brand__logo" src="assets/images/logo-arquidiocesis.png" alt="Logo de la Arquidiócesis de Los Altos">
+            <span class="system-brand__copy"><strong>Sistema de Gestión Pastoral</strong><small>Arquidiócesis de Los Altos</small></span>
           </a>
           <span class="identity-panel__status"><i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Acceso protegido</span>
         </div>
@@ -30,7 +30,7 @@
         <div class="identity-panel__content">
           <p class="section-label">Plataforma de administración</p>
           <h1 id="identity-title">Gestión clara.<br>Comunidad conectada.</h1>
-          <p class="identity-panel__description">Una plataforma segura para acompañar la gestión pastoral y administrativa de cada iglesia.</p>
+          <p class="identity-panel__description">Una plataforma segura para acompañar la gestión pastoral y administrativa de la Arquidiócesis de Los Altos.</p>
 
           <!-- Ilustración CSS original que representa nodos conectados de información. -->
           <div class="system-map" aria-hidden="true">
@@ -50,10 +50,11 @@
       <!-- Área de autenticación. La lógica se encuentra exclusivamente en js/login.js. -->
       <section class="login-section" aria-labelledby="login-title">
         <div class="login-card">
-          <a class="mobile-brand" href="index.html" aria-label="Sistema de Gestión de Iglesias">
-            <span class="system-brand__symbol" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
-            <span class="system-brand__copy"><strong>SGI</strong><small>Diócesis de Quetzaltenango</small></span>
-          </a>
+          <div class="login-institutional-brand">
+            <img src="assets/images/logo-arquidiocesis.png" alt="Logo de la Arquidiócesis de Los Altos">
+            <p>Arquidiócesis de Los Altos</p>
+            <span>Sistema de Gestión Pastoral</span>
+          </div>
 
           <header class="login-card__header">
             <p class="section-label">Área segura</p>

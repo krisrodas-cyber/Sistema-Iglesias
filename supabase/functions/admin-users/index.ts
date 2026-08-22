@@ -1,16 +1,17 @@
 /** Edge Function administrativa: valida JWT con cliente público y opera con cliente service role separado. */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const localOrigins = ['http://127.0.0.1:5500', 'http://localhost:5500'];
-const headers = (origin: string | null) => ({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin ?? 'null', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS', Vary: 'Origin' });
-const respond = (origin: string | null, body: unknown, status = 200) => { console.info('HTTP devuelto:', status); return new Response(JSON.stringify(body), { status, headers: headers(origin) }); };
+const ALLOWED_ORIGINS = new Set(['http://127.0.0.1:5500', 'http://localhost:5500', 'https://krisrodas-cyber.github.io']);
+const getCorsHeaders = (origin: string | null): Record<string, string> => origin && ALLOWED_ORIGINS.has(origin) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Max-Age': '86400', Vary: 'Origin' } : {};
+const respond = (origin: string | null, body: unknown, status = 200) => { console.info('HTTP devuelto:', status); return new Response(JSON.stringify(body), { status, headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' } }); };
 const fail = (origin: string | null, code: string, message: string, status: number) => respond(origin, { ok: false, error: { code, message } }, status);
 
 Deno.serve(async (req) => {
-  const origin = req.headers.get('Origin');
-  const allowedOrigins = [...localOrigins, ...(Deno.env.get('ALLOWED_ORIGINS') ?? '').split(',').map((value) => value.trim()).filter(Boolean)];
-  if (origin && !allowedOrigins.includes(origin)) return fail(origin, 'FORBIDDEN', 'Origen no autorizado.', 403);
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: headers(origin) });
+  const origin = req.headers.get('origin');
+  console.info('Origin recibido:', origin);
+  console.info('Origin permitido:', !origin || ALLOWED_ORIGINS.has(origin));
+  if (req.method === 'OPTIONS') { if (origin && !ALLOWED_ORIGINS.has(origin)) return new Response(null, { status: 403 }); return new Response('ok', { status: 200, headers: getCorsHeaders(origin) }); }
+  if (origin && !ALLOWED_ORIGINS.has(origin)) return fail(origin, 'FORBIDDEN', 'Origen no autorizado.', 403);
   if (req.method !== 'POST') return fail(origin, 'INVALID_ACTION', 'Método no permitido.', 405);
 
   const authHeader = req.headers.get('Authorization');

@@ -9,7 +9,7 @@ export const SUPABASE_URL = 'https://ykfxkdkngqzghgmbjzuo.supabase.co';
 export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FdTm3R_B4W4v4NXvMn8rIQ_uTUvdU5c';
 
 /** Nombre mostrado en los componentes compartidos de la aplicación. */
-export const APP_NAME = 'Sistema de Gestión de Iglesias';
+export const APP_NAME = 'Sistema de Gestión Pastoral';
 
 /** Versión pública actual del sistema. */
 export const APP_VERSION = '1.0.0';

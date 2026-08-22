@@ -2,7 +2,7 @@
 <template id="view-template">
   <section class="parishes-view" aria-labelledby="parishes-title">
     <header class="view-header parishes-view__header">
-      <div><p class="section-label">Administración</p><h1 id="parishes-title">Administración de Parroquias</h1><p>Registro y consulta de las parroquias de la Diócesis de Quetzaltenango.</p></div>
+      <div><p class="section-label">Administración</p><h1 id="parishes-title">Administración de Parroquias</h1><p>Registro y consulta de las parroquias de la Arquidiócesis de Los Altos.</p></div>
       <button id="new-parish-button" class="btn parish-primary-button" type="button" data-bs-toggle="modal" data-bs-target="#parish-modal"><i class="bi bi-plus-lg" aria-hidden="true"></i><span>Nueva parroquia</span></button>
     </header>
 
@@ -10,12 +10,12 @@
     <section class="parish-table-card" aria-label="Listado de parroquias">
       <div class="parish-table-card__toolbar">
         <div class="search-field"><i class="bi bi-search" aria-hidden="true"></i><input id="parish-search" class="form-control" type="search" placeholder="Buscar parroquias" aria-label="Buscar parroquias"></div>
-        <div class="parish-filters"><select id="parish-municipality-filter" class="form-select" aria-label="Filtrar por municipio"><option value="">Todos los municipios</option></select><select id="parish-status-filter" class="form-select" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="true">Activas</option><option value="false">Inactivas</option></select></div>
+        <div class="parish-filters"><select id="parish-deanery-filter" class="form-select" aria-label="Filtrar por decanato"><option value="">Todos los decanatos</option><option value="__unassigned__">Sin decanato asignado</option></select><select id="parish-municipality-filter" class="form-select" aria-label="Filtrar por municipio"><option value="">Todos los municipios</option></select><select id="parish-status-filter" class="form-select" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="true">Activas</option><option value="false">Inactivas</option></select></div>
       </div>
       <div class="parish-table-card__meta"><span id="parish-count">0 registros</span><span>Resultados actualizados</span></div>
       <div id="parish-loader" class="parish-loader" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span>Cargando parroquias...</span></div>
       <div id="parish-empty-state" class="parish-empty-state d-none"><i class="bi bi-bank2" aria-hidden="true"></i><p>No existen parroquias registradas.</p></div>
-      <div id="parish-table-wrapper" class="table-responsive d-none"><table class="table parish-table align-middle mb-0"><thead><tr><th>Código</th><th>Nombre</th><th>Patrono</th><th>Municipio</th><th>Teléfono</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead><tbody id="parish-table-body"></tbody></table></div>
+      <div id="parish-table-wrapper" class="table-responsive d-none"><table class="table parish-table align-middle mb-0"><thead><tr><th>Código</th><th>Nombre</th><th>Patrono</th><th>Decanato</th><th>Municipio</th><th>Teléfono</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead><tbody id="parish-table-body"></tbody></table></div>
       <nav id="parish-pagination" class="parish-pagination d-none" aria-label="Paginación de parroquias"></nav>
     </section>
   </section>

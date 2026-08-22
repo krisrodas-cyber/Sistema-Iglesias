@@ -5,12 +5,13 @@ const PAGE_SIZE = 10;
 const DEFAULT_DEPARTMENT = 'Quetzaltenango';
 const PARISH_FIELDS = [
   ['Identificador', 'id'], ['Código', 'codigo'], ['Nombre', 'nombre'], ['Patrono', 'patrono'], ['Dirección', 'direccion'],
-  ['Municipio', 'municipio'], ['Departamento', 'departamento'], ['Teléfono', 'telefono'], ['Correo', 'correo'],
+  ['Municipio', 'municipio'], ['Departamento', 'departamento'], ['Decanato', 'decanato'], ['Teléfono', 'telefono'], ['Correo', 'correo'],
   ['Fecha de fundación', 'fecha_fundacion'], ['Estado', 'estado'], ['Observaciones', 'observaciones'],
   ['Fecha de registro', 'created_at'], ['Última actualización', 'updated_at'], ['Creado por', 'creado_por'], ['Actualizado por', 'actualizado_por'],
 ];
 
 let parishes = [];
+let deaneries = [];
 let currentPage = 1;
 let editingParishId = null;
 let pendingStatusChange = null;
@@ -37,6 +38,22 @@ const mountOverlays = () => {
   });
 };
 
+/** Inserta el selector de catálogo sin alterar los identificadores técnicos del formulario. */
+const ensureDeaneryField = () => {
+  if (document.querySelector('#parish-deanery')) return;
+  const departmentField = document.querySelector('#parish-department')?.closest('.col-md-6');
+  if (!departmentField) return;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'col-md-6';
+  const label = document.createElement('label');
+  label.className = 'form-label'; label.htmlFor = 'parish-deanery'; label.textContent = 'Decanato *';
+  const select = document.createElement('select');
+  select.id = 'parish-deanery'; select.name = 'decanato_id'; select.className = 'form-select'; select.required = true;
+  select.append(new Option('Seleccione un decanato', ''));
+  wrapper.append(label, select);
+  departmentField.before(wrapper);
+};
+
 /** Devuelve los componentes Bootstrap globales cargados una única vez por Dashboard. */
 const getBootstrap = () => {
   if (!window.bootstrap?.Modal || !window.bootstrap?.Toast) {
@@ -47,7 +64,7 @@ const getBootstrap = () => {
 
 /** Obtiene y almacena las referencias DOM del módulo ya montado. */
 const cacheElements = () => ({
-  form: document.querySelector('#parish-form'), codeInput: document.querySelector('#parish-code'), searchInput: document.querySelector('#parish-search'), municipalityFilter: document.querySelector('#parish-municipality-filter'), statusFilter: document.querySelector('#parish-status-filter'), tableBody: document.querySelector('#parish-table-body'), tableWrapper: document.querySelector('#parish-table-wrapper'), loader: document.querySelector('#parish-loader'), emptyState: document.querySelector('#parish-empty-state'), emptyMessage: document.querySelector('#parish-empty-state p'), pagination: document.querySelector('#parish-pagination'), count: document.querySelector('#parish-count'), errorAlert: document.querySelector('#parish-error'), saveButton: document.querySelector('#save-parish-button'), formTitle: document.querySelector('#parish-modal-title'), detailContent: document.querySelector('#parish-detail-content'), statusTitle: document.querySelector('#parish-status-title'), statusMessage: document.querySelector('#parish-status-message'), confirmStatusButton: document.querySelector('#confirm-parish-status-button'), toastMessage: document.querySelector('#parish-toast-message'), toastIcon: document.querySelector('#parish-toast-icon'),
+  form: document.querySelector('#parish-form'), codeInput: document.querySelector('#parish-code'), deaneryInput: document.querySelector('#parish-deanery'), searchInput: document.querySelector('#parish-search'), deaneryFilter: document.querySelector('#parish-deanery-filter'), municipalityFilter: document.querySelector('#parish-municipality-filter'), statusFilter: document.querySelector('#parish-status-filter'), tableBody: document.querySelector('#parish-table-body'), tableWrapper: document.querySelector('#parish-table-wrapper'), loader: document.querySelector('#parish-loader'), emptyState: document.querySelector('#parish-empty-state'), emptyMessage: document.querySelector('#parish-empty-state p'), pagination: document.querySelector('#parish-pagination'), count: document.querySelector('#parish-count'), errorAlert: document.querySelector('#parish-error'), saveButton: document.querySelector('#save-parish-button'), formTitle: document.querySelector('#parish-modal-title'), detailContent: document.querySelector('#parish-detail-content'), statusTitle: document.querySelector('#parish-status-title'), statusMessage: document.querySelector('#parish-status-message'), confirmStatusButton: document.querySelector('#confirm-parish-status-button'), toastMessage: document.querySelector('#parish-toast-message'), toastIcon: document.querySelector('#parish-toast-icon'),
 });
 
 /** Convierte valores vacíos en null para no enviar cadenas sin contenido a Supabase. */
@@ -102,6 +119,7 @@ const buildPayload = () => {
     telefono: getOptionalValue(formData.get('telefono')),
     correo: getOptionalValue(formData.get('correo')),
     fecha_fundacion: formData.get('fecha_fundacion') || null,
+    decanato_id: formData.get('decanato_id') ? Number(formData.get('decanato_id')) : null,
     observaciones: getOptionalValue(formData.get('observaciones')),
     estado: formData.get('estado') === 'true',
   };
@@ -126,13 +144,15 @@ const getFormValidationMessage = () => {
 const getFilteredParishes = () => {
   const query = elements.searchInput.value.trim().toLocaleLowerCase('es');
   const municipality = elements.municipalityFilter.value;
+  const deanery = elements.deaneryFilter.value;
   const status = elements.statusFilter.value;
   return parishes.filter((parish) => {
-    const searchableValues = [parish.codigo, parish.nombre, parish.patrono, parish.municipio];
+    const searchableValues = [parish.codigo, parish.nombre, parish.patrono, parish.municipio, parish.decanato, parish.decanato_codigo];
     const matchesQuery = searchableValues.some((value) => value?.trim().toLocaleLowerCase('es').includes(query));
     const matchesMunicipality = !municipality || parish.municipio === municipality;
+    const matchesDeanery = !deanery || (deanery === '__unassigned__' ? !parish.decanato_id : String(parish.decanato_id) === deanery);
     const matchesStatus = status === '' || String(parish.estado) === status;
-    return matchesQuery && matchesMunicipality && matchesStatus;
+    return matchesQuery && matchesDeanery && matchesMunicipality && matchesStatus;
   });
 };
 
@@ -153,7 +173,7 @@ const createActionButton = (icon, label, modifier, handler) => {
 /** Inserta la fila de una parroquia y sus acciones permitidas por el rol. */
 const appendParishRow = (parish) => {
   const row = document.createElement('tr');
-  const values = [parish.codigo, parish.nombre, parish.patrono || '—', parish.municipio, parish.telefono || '—'];
+  const values = [parish.codigo, parish.nombre, parish.patrono || '—', parish.decanato || 'Sin asignar', parish.municipio, parish.telefono || '—'];
   values.forEach((value, index) => {
     const cell = document.createElement('td');
     cell.textContent = value;
@@ -221,6 +241,24 @@ const populateMunicipalities = () => {
   elements.municipalityFilter.value = selectedValue;
 };
 
+/** Carga el catálogo activo de decanatos para formulario y filtro local. */
+const loadDeaneries = async () => {
+  const { data, error } = await supabase.from('decanatos').select('id, codigo, nombre').eq('activo', true).order('nombre', { ascending: true });
+  if (error) throw error;
+  deaneries = data ?? [];
+  const selectedFormValue = elements.deaneryInput.value;
+  const selectedFilterValue = elements.deaneryFilter.value;
+  elements.deaneryInput.replaceChildren(new Option('Seleccione un decanato', ''));
+  elements.deaneryFilter.replaceChildren(new Option('Todos los decanatos', ''), new Option('Sin decanato asignado', '__unassigned__'));
+  deaneries.forEach((deanery) => {
+    const label = `${deanery.codigo} · ${deanery.nombre}`;
+    elements.deaneryInput.add(new Option(label, String(deanery.id)));
+    elements.deaneryFilter.add(new Option(label, String(deanery.id)));
+  });
+  elements.deaneryInput.value = selectedFormValue;
+  elements.deaneryFilter.value = selectedFilterValue;
+};
+
 /** Consulta todas las parroquias autorizadas por RLS y actualiza la vista. */
 const fetchParishes = async () => {
   elements.loader.classList.remove('d-none');
@@ -230,9 +268,9 @@ const fetchParishes = async () => {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 15000);
   try {
-    const { data, error } = await supabase.from('parroquias').select('*').order('nombre', { ascending: true }).abortSignal(controller.signal);
+    const [{ data, error }] = await Promise.all([supabase.from('parroquias').select('*, decanatos(codigo, nombre)').order('nombre', { ascending: true }).abortSignal(controller.signal), loadDeaneries()]);
     if (error) throw error;
-    parishes = data ?? [];
+    parishes = (data ?? []).map((parish) => ({ ...parish, decanato: parish.decanato ?? parish.decanatos?.nombre ?? null, decanato_codigo: parish.decanato_codigo ?? parish.decanatos?.codigo ?? null }));
     currentPage = 1;
     populateMunicipalities();
     renderTable();
@@ -298,7 +336,7 @@ const openDetails = (parish) => {
     const term = document.createElement('dt');
     const description = document.createElement('dd');
     term.textContent = label;
-    description.textContent = key === 'estado' ? (parish.estado ? 'Activa' : 'Inactiva') : (key.includes('_at') ? formatDate(parish[key], true) : key === 'fecha_fundacion' ? formatDate(parish[key]) : parish[key] || '—');
+    description.textContent = key === 'decanato' ? (parish.decanato ? `${parish.decanato_codigo ? `${parish.decanato_codigo} · ` : ''}${parish.decanato}` : 'Sin decanato asignado') : key === 'estado' ? (parish.estado ? 'Activa' : 'Inactiva') : (key.includes('_at') ? formatDate(parish[key], true) : key === 'fecha_fundacion' ? formatDate(parish[key]) : parish[key] || '—');
     grid.append(term, description);
   });
   elements.detailContent.append(grid);
@@ -387,6 +425,7 @@ export async function initParroquias(context) {
   destroyParroquias();
   userContext = context;
   mountOverlays();
+  ensureDeaneryField();
   elements = cacheElements();
   const bootstrap = getBootstrap();
   const modalElement = document.getElementById('parish-modal');
@@ -401,7 +440,7 @@ export async function initParroquias(context) {
   elements.form.addEventListener('submit', saveParish, eventOptions);
 
   elements.searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); }, eventOptions);
-  [elements.municipalityFilter, elements.statusFilter].forEach((control) => control.addEventListener('change', () => { currentPage = 1; renderTable(); }, eventOptions));
+  [elements.deaneryFilter, elements.municipalityFilter, elements.statusFilter].forEach((control) => control.addEventListener('change', () => { currentPage = 1; renderTable(); }, eventOptions));
   elements.confirmStatusButton.addEventListener('click', changeParishStatus, eventOptions);
   await fetchParishes();
 }
