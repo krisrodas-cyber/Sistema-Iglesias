@@ -56,7 +56,7 @@ export const getAuthenticatedUser = async () => {
  * Obtiene el usuario de Auth, su perfil público y el rol relacionado.
  * El UUID de Auth se consulta directamente en public.perfiles.id.
  *
- * @returns {Promise<{user: object, profile: object, role: object}|null>} Contexto autorizado o null.
+ * @returns {Promise<{user: object, profile: object, role: object, assignedParish: object|null}|null>} Contexto autorizado o null.
  */
 export const getUserContext = async () => {
   const session = await getActiveSession();
@@ -80,7 +80,7 @@ export const getUserContext = async () => {
 
   const { data: perfil, error: perfilError } = await supabase
     .from('perfiles')
-    .select('id, nombre, apellido, activo, rol_id')
+    .select('id, nombre, apellido, activo, rol_id, parroquia_id')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -100,7 +100,23 @@ export const getUserContext = async () => {
     return null;
   }
 
-  return { user, profile: perfil, role: rol };
+  let assignedParish = null;
+  if (rol.nombre === 'Secretario') {
+    const { data: assignedParishId, error: parishRpcError } = await supabase.rpc('obtener_parroquia_usuario');
+    console.info('Prueba parroquia asignada — usuario:', `${perfil.nombre ?? ''} ${perfil.apellido ?? ''}`.trim());
+    console.info('Prueba parroquia asignada — rol:', rol.nombre);
+    console.info('Prueba parroquia asignada — parroquia_id del perfil:', perfil.parroquia_id ?? null);
+    console.info('Prueba parroquia asignada — resultado RPC:', assignedParishId ?? null);
+    if (parishRpcError) console.error('Prueba parroquia asignada — error RPC:', parishRpcError.message);
+    const parishId = assignedParishId ?? perfil.parroquia_id;
+    if (parishId) {
+      const { data: parish, error: parishError } = await supabase.from('parroquias').select('id, codigo, nombre').eq('id', parishId).maybeSingle();
+      if (parishError) console.error('Prueba parroquia asignada — error parroquia:', parishError.message);
+      assignedParish = parish ?? null;
+    }
+  }
+
+  return { user, profile: perfil, role: rol, assignedParish };
 };
 
 /**

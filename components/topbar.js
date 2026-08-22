@@ -14,6 +14,13 @@ const renderUserProfile = (userContext) => {
   document.querySelector('#user-name').textContent = fullName;
   document.querySelector('#user-email').textContent = userContext.user.email ?? 'Correo no disponible';
   document.querySelector('#user-role').textContent = getDisplayRole(userContext);
+  const parish = document.querySelector('#assigned-parish');
+  if (userContext.role?.nombre === 'Secretario') {
+    parish.textContent = userContext.assignedParish
+      ? `Parroquia asignada: ${userContext.assignedParish.codigo} · ${userContext.assignedParish.nombre}`
+      : 'El usuario Secretario no tiene una parroquia asignada.';
+    parish.classList.remove('d-none');
+  } else parish.classList.add('d-none');
 };
 
 /** Cierra la sesión de Supabase y devuelve al usuario al Login. */

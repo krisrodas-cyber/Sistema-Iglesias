@@ -442,6 +442,13 @@ export async function initParroquias(context) {
   elements.searchInput.addEventListener('input', () => { currentPage = 1; renderTable(); }, eventOptions);
   [elements.deaneryFilter, elements.municipalityFilter, elements.statusFilter].forEach((control) => control.addEventListener('change', () => { currentPage = 1; renderTable(); }, eventOptions));
   elements.confirmStatusButton.addEventListener('click', changeParishStatus, eventOptions);
+  if (userContext.role?.nombre === 'Secretario' && !userContext.profile?.parroquia_id) {
+    elements.loader.classList.add('d-none');
+    elements.emptyMessage.textContent = 'Su usuario no tiene una parroquia asignada. Contacte al Administrador.';
+    elements.emptyState.classList.remove('d-none');
+    showError('Su usuario no tiene una parroquia asignada. Contacte al Administrador.');
+    return;
+  }
   await fetchParishes();
 }
 

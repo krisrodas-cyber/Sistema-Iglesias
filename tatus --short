@@ -1,0 +1,23 @@
+warning: in the working copy of 'components/topbar.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/topbar.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'css/consultas.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/auth.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/capillas.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/comunidades.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/consultas.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/inventario-documental.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/parroquias.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/permissions.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/sacerdotes.js', LF will be replaced by CRLF the next time Git touches it
+ components/topbar.html      |  1 [32m+[m
+ components/topbar.js        |  7 [32m+++++++[m
+ css/consultas.css           |  2 [32m+[m[31m-[m
+ js/auth.js                  | 22 [32m+++++++++++++++++++[m[31m---[m
+ js/capillas.js              | 10 [32m++++++[m[31m----[m
+ js/comunidades.js           | 10 [32m++++++[m[31m----[m
+ js/consultas.js             | 12 [32m+++++++[m[31m-----[m
+ js/inventario-documental.js | 14 [32m++++++++[m[31m------[m
+ js/parroquias.js            |  7 [32m+++++++[m
+ js/permissions.js           |  4 [32m+++[m[31m-[m
+ js/sacerdotes.js            | 10 [32m+++++++++[m[31m-[m
+ 11 files changed, 74 insertions(+), 25 deletions(-)

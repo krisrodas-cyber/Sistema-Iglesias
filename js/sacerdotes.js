@@ -192,7 +192,15 @@ export async function initSacerdotes(context) {
   if (!context || !hasPermission(context, 'priests.view')) return;
   destroySacerdotes(); userContext = context; mountOverlays(); ensurePhotoField(); elements = cacheElements(); const bootstrap = getBootstrap();
   formModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('priest-modal')); detailModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('priest-detail-modal')); statusModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('priest-status-modal')); toast = bootstrap.Toast.getOrCreateInstance(document.getElementById('priest-toast')); eventController = new AbortController(); const options = { signal: eventController.signal };
-  document.querySelector('#new-priest-button').hidden = !hasPermission(userContext, 'priests.create'); document.querySelector('#new-priest-button').addEventListener('click', openNew, options); elements.form.addEventListener('submit', savePriest, options); elements.photo.addEventListener('change', handlePhotoSelection, options); elements.clergyType.addEventListener('change', syncCongregation, options); [elements.search, elements.clergyFilter, elements.ministryFilter, elements.recordFilter].forEach((control) => control.addEventListener(control === elements.search ? 'input' : 'change', () => { currentPage = 1; renderTable(); }, options)); elements.confirmStatus.addEventListener('click', changeStatus, options); await fetchPriests();
+  document.querySelector('#new-priest-button').hidden = !hasPermission(userContext, 'priests.create'); document.querySelector('#new-priest-button').addEventListener('click', openNew, options); elements.form.addEventListener('submit', savePriest, options); elements.photo.addEventListener('change', handlePhotoSelection, options); elements.clergyType.addEventListener('change', syncCongregation, options); [elements.search, elements.clergyFilter, elements.ministryFilter, elements.recordFilter].forEach((control) => control.addEventListener(control === elements.search ? 'input' : 'change', () => { currentPage = 1; renderTable(); }, options)); elements.confirmStatus.addEventListener('click', changeStatus, options);
+  if (userContext.role?.nombre === 'Secretario' && !userContext.profile?.parroquia_id) {
+    elements.loader.classList.add('d-none');
+    elements.emptyMessage.textContent = 'Su usuario no tiene una parroquia asignada. Contacte al Administrador.';
+    elements.empty.classList.remove('d-none');
+    showError('Su usuario no tiene una parroquia asignada. Contacte al Administrador.');
+    return;
+  }
+  await fetchPriests();
 }
 
 /** Elimina listeners, instancias Bootstrap y overlays al abandonar el módulo. */
